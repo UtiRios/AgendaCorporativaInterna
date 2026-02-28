@@ -6,195 +6,205 @@
 <title>Agenda Corporativa Interna</title>
 
 <style>
-body{
+body {
     font-family: Arial, sans-serif;
-    background:#f4f6f9;
-    margin:0;
-    padding:15px;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
 }
 
-h2{
-    text-align:center;
-    color:#1f2937;
+header {
+    background: #003366;
+    color: white;
+    text-align: center;
+    padding: 15px;
 }
 
-.form-container{
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    margin-bottom:20px;
+header img {
+    height: 60px;
+    margin-bottom: 8px;
 }
 
-input{
-    width:100%;
-    padding:8px;
-    margin:5px 0;
-    border:1px solid #ccc;
-    border-radius:6px;
+.container {
+    padding: 20px;
 }
 
-button{
-    padding:8px 12px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    margin-top:5px;
+h2 {
+    text-align: center;
+    margin-top: 0;
 }
 
-.btn-add{
-    background:#2563eb;
-    color:white;
+.form-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-.card{
-    background:white;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:12px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
 }
 
-.actions{
-    margin-top:8px;
+button {
+    padding: 8px 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.btn-whatsapp{
-    background:#25D366;
-    color:white;
-    margin-right:5px;
+.btn-add {
+    background: #007bff;
+    color: white;
 }
 
-.btn-call{
-    background:#0ea5e9;
-    color:white;
-    margin-right:5px;
+.card {
+    background: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.btn-delete{
-    background:#ef4444;
-    color:white;
+.btn-whatsapp {
+    background: #25D366;
+    color: white;
+    margin-right: 6px;
 }
-@media(min-width:768px){
-    .grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px;
-    }
+
+.btn-call {
+    background: #0ea5e9;
+    color: white;
+    margin-right: 6px;
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+}
+
+.empty {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: #003366;
+    color: white;
+    font-size: 14px;
 }
 </style>
 </head>
 <body>
 
-<h2>Agenda Corporativa Interna</h2>
+<header>
+    <h1>Agenda Corporativa Interna</h1>
+</header>
 
-<div class="form-container">
-<div class="grid">
-<input type="text" id="telefono" placeholder="Número o Extensión">
+<div class="container">
+
+<h2>Directorio de Contactos</h2>
+
+<div class="form-group">
+<input type="text" id="telefono" placeholder="Número completo">
 <input type="email" id="correo" placeholder="Correo electrónico">
 <input type="text" id="nombre" placeholder="Nombre">
 <input type="text" id="apellido" placeholder="Apellido">
 <input type="text" id="puesto" placeholder="Puesto">
 <input type="text" id="ubicacion" placeholder="Ubicación / Sala">
 <input type="text" id="jefe" placeholder="Jefe inmediato">
-</div>
-<button class="btn-add" onclick="agregarContacto()">Agregar Contacto</button>
+<button class="btn-add" onclick="agregarContacto()">Agregar</button>
 </div>
 
 <div id="listaContactos"></div>
 
+</div>
+
+<footer>
+    © 2026 Tu Empresa – Agenda Corporativa Interna
+</footer>
+
 <script>
 
-// CONTACTOS EMBEBIDOS EN EL ARCHIVO
-let contactos = [
-{
-telefono:"55123456",
-correo:"juan.perez@empresa.com",
-nombre:"Juan",
-apellido:"Pérez",
-puesto:"Asesor Comercial",
-ubicacion:"Sala Zona 9",
-jefe:"Carlos López"
-},
-{
-telefono:"22223333 ext 101",
-correo:"ventas@empresa.com",
-nombre:"Sala",
-apellido:"Central",
-puesto:"Recepción",
-ubicacion:"Oficina Central",
-jefe:"Gerencia Comercial"
-}
-];
+let contactos = JSON.parse(localStorage.getItem("agenda_corp")) || [];
 
-function esCelular(numero){
-let limpio = numero.replace(/\D/g,'');
-return limpio.length===8 && /^[345]/.test(limpio);
+function esCelular(num){
+    const n = num.replace(/\D/g,"");
+    return n.length === 8 && /^[345]/.test(n);
 }
 
 function render(){
-let contenedor=document.getElementById("listaContactos");
-contenedor.innerHTML="";
+    const div = document.getElementById("listaContactos");
+    div.innerHTML = "";
 
-contactos.forEach((c,index)=>{
-let card=document.createElement("div");
-card.className="card";
+    if(contactos.length === 0){
+        div.innerHTML = "<div class='empty'>No hay contactos registrados.</div>";
+        return;
+    }
 
-let acciones="";
+    contactos.forEach((c,i)=>{
+        const card = document.createElement("div");
+        card.className = "card";
 
-if(esCelular(c.telefono)){
-let numeroLimpio=c.telefono.replace(/\D/g,'');
-acciones+=`<a href="https://wa.me/502${numeroLimpio}" target="_blank">
-<button class="btn-whatsapp">WhatsApp</button></a>`;
-}else{
-acciones+=`<a href="tel:${c.telefono}">
-<button class="btn-call">Llamar</button></a>`;
-}
+        let acciones = "";
 
-acciones+=`<button class="btn-delete" onclick="eliminar(${index})">Eliminar</button>`;
+        if(esCelular(c.telefono)) {
+            const num = c.telefono.replace(/\D/g,"");
+            acciones += `<a class="btn-whatsapp" target="_blank" href="https://wa.me/502${num}">WhatsApp</a>`;
+        } else {
+            const numCall = c.telefono.replace(/\D/g,"");
+            acciones += `<a class="btn-call" href="tel:${numCall}">Llamar</a>`;
+        }
 
-card.innerHTML=`
+        acciones += `<button class="btn-delete" onclick="eliminar(${i})">Eliminar</button>`;
+
+        card.innerHTML = `
 <strong>${c.nombre} ${c.apellido}</strong><br>
 ${c.puesto}<br>
 📍 ${c.ubicacion}<br>
 👔 Jefe: ${c.jefe}<br>
 📞 ${c.telefono}<br>
-✉ <a href="mailto:${c.correo}">${c.correo}</a>
-<div class="actions">${acciones}</div>
+✉ <a href="mailto:${c.correo}">${c.correo}</a><br><br>
+${acciones}
 `;
-
-contenedor.appendChild(card);
-});
+        div.appendChild(card);
+    });
 }
 
 function agregarContacto(){
-let nuevo={
-telefono:document.getElementById("telefono").value,
-correo:document.getElementById("correo").value,
-nombre:document.getElementById("nombre").value,
-apellido:document.getElementById("apellido").value,
-puesto:document.getElementById("puesto").value,
-ubicacion:document.getElementById("ubicacion").value,
-jefe:document.getElementById("jefe").value
-};
+    const nuevo = {
+        telefono: document.getElementById("telefono").value,
+        correo: document.getElementById("correo").value,
+        nombre: document.getElementById("nombre").value,
+        apellido: document.getElementById("apellido").value,
+        puesto: document.getElementById("puesto").value,
+        ubicacion: document.getElementById("ubicacion").value,
+        jefe: document.getElementById("jefe").value
+    };
 
-if(!nuevo.nombre || !nuevo.telefono){
-alert("Nombre y teléfono son obligatorios");
-return;
+    if(!nuevo.telefono || !nuevo.nombre){
+        alert("Nombre y teléfono son obligatorios");
+        return;
+    }
+
+    contactos.push(nuevo);
+    localStorage.setItem("agenda_corp", JSON.stringify(contactos));
+    render();
 }
 
-contactos.push(nuevo);
-render();
-limpiarFormulario();
-}
-
-function eliminar(index){
-contactos.splice(index,1);
-render();
-}
-
-function limpiarFormulario(){
-document.querySelectorAll("input").forEach(i=>i.value="");
+function eliminar(i){
+    contactos.splice(i,1);
+    localStorage.setItem("agenda_corp", JSON.stringify(contactos));
+    render();
 }
 
 render();

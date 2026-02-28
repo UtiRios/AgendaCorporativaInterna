@@ -20,11 +20,6 @@ header {
     padding: 15px;
 }
 
-header img {
-    height: 60px;
-    margin-bottom: 8px;
-}
-
 .container {
     padding: 20px;
 }
@@ -57,10 +52,9 @@ button {
     cursor: pointer;
 }
 
-.btn-add {
-    background: #007bff;
-    color: white;
-}
+.btn-add { background: #007bff; color: white; }
+.btn-export { background: #16a34a; color: white; }
+.btn-import { background: #f59e0b; color: white; }
 
 .card {
     background: white;
@@ -115,7 +109,7 @@ footer {
 <h2>Directorio de Contactos</h2>
 
 <div class="form-group">
-<input type="text" id="telefono" placeholder="Número completo">
+<input type="text" id="telefono" placeholder="Número completo o extensión">
 <input type="email" id="correo" placeholder="Correo electrónico">
 <input type="text" id="nombre" placeholder="Nombre">
 <input type="text" id="apellido" placeholder="Apellido">
@@ -123,6 +117,11 @@ footer {
 <input type="text" id="ubicacion" placeholder="Ubicación / Sala">
 <input type="text" id="jefe" placeholder="Jefe inmediato">
 <button class="btn-add" onclick="agregarContacto()">Agregar</button>
+<button class="btn-export" onclick="exportarCSV()">Exportar CSV</button>
+<label class="btn-import">
+Importar CSV
+<input type="file" id="importarCSV" accept=".csv" onchange="importarCSV(event)" hidden>
+</label>
 </div>
 
 <div id="listaContactos"></div>
@@ -130,7 +129,7 @@ footer {
 </div>
 
 <footer>
-    © 2026 Tu Empresa – Agenda Corporativa Interna
+    © 2026 Grupo Autocom, S.A. – Agenda Corporativa Interna
 </footer>
 
 <script>
@@ -182,17 +181,17 @@ ${acciones}
 
 function agregarContacto(){
     const nuevo = {
-        telefono: document.getElementById("telefono").value,
-        correo: document.getElementById("correo").value,
-        nombre: document.getElementById("nombre").value,
-        apellido: document.getElementById("apellido").value,
-        puesto: document.getElementById("puesto").value,
-        ubicacion: document.getElementById("ubicacion").value,
-        jefe: document.getElementById("jefe").value
+        telefono: document.getElementById("telefono").value.trim(),
+        correo: document.getElementById("correo").value.trim(),
+        nombre: document.getElementById("nombre").value.trim(),
+        apellido: document.getElementById("apellido").value.trim(),
+        puesto: document.getElementById("puesto").value.trim(),
+        ubicacion: document.getElementById("ubicacion").value.trim(),
+        jefe: document.getElementById("jefe").value.trim()
     };
 
     if(!nuevo.telefono || !nuevo.nombre){
-        alert("Nombre y teléfono son obligatorios");
+        alert("Nombre y teléfono son obligatorios.");
         return;
     }
 
@@ -200,7 +199,6 @@ function agregarContacto(){
     localStorage.setItem("agenda_corp", JSON.stringify(contactos));
     render();
     limpiarCampos();
-    
 }
 
 function limpiarCampos(){
@@ -211,6 +209,69 @@ function limpiarCampos(){
     document.getElementById("puesto").value = "";
     document.getElementById("ubicacion").value = "";
     document.getElementById("jefe").value = "";
+    document.getElementById("telefono").focus();
+}
+
+function eliminar(i){
+    contactos.splice(i,1);
+    localStorage.setItem("agenda_corp", JSON.stringify(contactos));
+    render();
+}
+
+function exportarCSV(){
+    if(contactos.length === 0){
+        alert("No hay contactos para exportar.");
+        return;
+    }
+
+    let encabezados = ["Telefono","Correo","Nombre","Apellido","Puesto","Ubicacion","Jefe"];
+    let filas = contactos.map(c =>
+        [c.telefono,c.correo,c.nombre,c.apellido,c.puesto,c.ubicacion,c.jefe].join(",")
+    );
+
+    let csvContenido = encabezados.join(",") + "\n" + filas.join("\n");
+
+    let blob = new Blob([csvContenido], { type: "text/csv;charset=utf-8;" });
+    let url = URL.createObjectURL(blob);
+
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = "agenda_corporativa.csv";
+    link.click();
+}
+
+function importarCSV(event){
+    let archivo = event.target.files[0];
+    if(!archivo) return;
+
+    let lector = new FileReader();
+
+    lector.onload = function(e){
+        let texto = e.target.result;
+        let lineas = texto.split("\n");
+        lineas.shift();
+
+        contactos = lineas
+            .filter(l => l.trim() !== "")
+            .map(linea => {
+                let datos = linea.split(",");
+                return {
+                    telefono: datos[0] || "",
+                    correo: datos[1] || "",
+                    nombre: datos[2] || "",
+                    apellido: datos[3] || "",
+                    puesto: datos[4] || "",
+                    ubicacion: datos[5] || "",
+                    jefe: datos[6] || ""
+                };
+            });
+
+        localStorage.setItem("agenda_corp", JSON.stringify(contactos));
+        render();
+        alert("Contactos importados correctamente.");
+    };
+
+    lector.readAsText(archivo);
 }
 
 render();
@@ -219,4 +280,3 @@ render();
 
 </body>
 </html>
-

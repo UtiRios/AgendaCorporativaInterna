@@ -199,12 +199,18 @@ function agregarContacto(){
     contactos.push(nuevo);
     localStorage.setItem("agenda_corp", JSON.stringify(contactos));
     render();
+    limpiarCampos();
+    
 }
 
-function eliminar(i){
-    contactos.splice(i,1);
-    localStorage.setItem("agenda_corp", JSON.stringify(contactos));
-    render();
+function limpiarCampos(){
+    document.getElementById("telefono").value = "";
+    document.getElementById("correo").value = "";
+    document.getElementById("nombre").value = "";
+    document.getElementById("apellido").value = "";
+    document.getElementById("puesto").value = "";
+    document.getElementById("ubicacion").value = "";
+    document.getElementById("jefe").value = "";
 }
 
 render();
@@ -213,3 +219,4 @@ render();
 
 </body>
 </html>
+
